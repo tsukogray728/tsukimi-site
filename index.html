@@ -136,7 +136,7 @@
     position: fixed;
     top: 18px;
     left: 18px;
-    z-index: 20;
+    z-index: 55;
   }
   .lang-toggle #langBtn{
     font-family: 'Inter', sans-serif;
@@ -395,6 +395,11 @@
     color: var(--muted);
     margin-bottom: 30px;
   }
+  .blocked-title{
+    font-size: 1.7rem !important;
+    color: #e08585 !important;
+    line-height: 1.4;
+  }
   .gate-actions{
     display: flex;
     flex-direction: column;
@@ -506,12 +511,14 @@
   }
   .img-slot{
     aspect-ratio: 4 / 5;
-    border: 1px dashed var(--line);
     border-radius: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
+  }
+  .img-slot:not(:has(img)){
+    border: 1px dashed var(--line);
   }
   .img-slot img{
     width: 100%;
@@ -641,7 +648,7 @@
 <body class="gated">
 
 <div class="gate" id="ageGate">
-  <div class="gate-box">
+  <div class="gate-box" id="gateAsk">
     <div class="gate-icon">🌙</div>
     <h2>Antes de entrar</h2>
     <p>Este sitio contiene enlaces y contenido dirigidos a un público adulto, incluyendo arte de temática explícita (NSFW). Si eres menor de 18 años, por favor no continúes.</p>
@@ -649,6 +656,10 @@
       <button class="gate-btn" id="gateEnter">Tengo 18 años o más — entrar</button>
       <button class="gate-btn leave" id="gateLeave">Soy menor de 18 — salir</button>
     </div>
+  </div>
+  <div class="gate-box" id="gateBlocked" style="display:none;">
+    <h2 class="blocked-title">Has sido bloqueado por incumplimiento de edad</h2>
+    <p>Por motivos de seguridad colocamos este aviso. Si crees que fue un error, contacta a <strong>tsuko_serval98</strong> o <strong>kitsunami_the_fennec.98</strong> en Discord.</p>
   </div>
 </div>
 
@@ -882,7 +893,8 @@
     document.body.classList.remove('gated');
   });
   document.getElementById('gateLeave').addEventListener('click', () => {
-    window.location.href = 'https://www.google.com';
+    document.getElementById('gateAsk').style.display = 'none';
+    document.getElementById('gateBlocked').style.display = 'block';
   });
 
   const btnMobile = document.getElementById('btnMobile');
