@@ -54,7 +54,7 @@
     position: relative;
     z-index: 1;
     width: 100%;
-    max-width: 560px;
+    max-width: 640px;
     padding: 72px 32px 64px;
     display: flex;
     flex-direction: column;
@@ -101,7 +101,7 @@
   }
 
   body.desktop-view .page{
-    max-width: 960px;
+    max-width: 1100px;
     display: grid;
     grid-template-columns: 320px 1fr;
     gap: 64px;
@@ -121,7 +121,7 @@
   body.desktop-view .kana{ text-align: left; }
   body.desktop-view .tagline{ text-align: left; max-width: 260px; }
   body.desktop-view .content-col{ display: block; width: 100%; min-width: 0; }
-  body.desktop-view .gallery-grid{ grid-template-columns: repeat(3, 1fr); }
+  body.desktop-view .gallery-grid{ grid-template-columns: repeat(2, 1fr); }
   body.desktop-view .payment-list{ grid-template-columns: repeat(4, 1fr); }
   body.desktop-view .comms-group{ display: inline-block; width: calc(50% - 12px); vertical-align: top; }
   body.desktop-view .comms-group:first-of-type{ margin-right: 24px; }
@@ -443,8 +443,8 @@
   }
   .gallery-grid{
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
+    grid-template-columns: 1fr;
+    gap: 16px;
     margin-bottom: 30px;
   }
   .img-slot{
@@ -512,6 +512,73 @@
     font-size: 0.92rem;
     color: var(--moon-cream);
   }
+
+  /* --- Lightbox / carrusel --- */
+  .img-slot img{ cursor: zoom-in; transition: opacity 0.2s ease; }
+  .img-slot img:hover{ opacity: 0.85; }
+
+  .lightbox{
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    background: rgba(10,11,26,0.94);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .lightbox.active{ display: flex; }
+
+  .lb-img{
+    max-width: min(90vw, 720px);
+    max-height: 86vh;
+    object-fit: contain;
+    border-radius: 4px;
+    box-shadow: 0 0 60px rgba(0,0,0,0.5);
+  }
+
+  .lb-close, .lb-prev, .lb-next{
+    position: fixed;
+    background: var(--night-soft);
+    border: 1px solid var(--line);
+    color: var(--moon-cream);
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    cursor: pointer;
+    transition: color 0.2s ease, border-color 0.2s ease;
+  }
+  .lb-close:hover, .lb-prev:hover, .lb-next:hover{
+    color: var(--gold);
+    border-color: var(--gold);
+  }
+
+  .lb-close{ top: 20px; right: 20px; }
+  .lb-prev{ left: 20px; top: 50%; transform: translateY(-50%); }
+  .lb-next{ right: 20px; top: 50%; transform: translateY(-50%); }
+
+  .lb-counter{
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.78rem;
+    color: var(--muted);
+    background: var(--night-soft);
+    border: 1px solid var(--line);
+    padding: 5px 14px;
+    border-radius: 12px;
+  }
+
+  @media (max-width: 500px){
+    .lb-prev{ left: 8px; width: 38px; height: 38px; }
+    .lb-next{ right: 8px; width: 38px; height: 38px; }
+    .lb-close{ top: 10px; right: 10px; width: 38px; height: 38px; }
+  }
 </style>
 </head>
 <body class="gated">
@@ -533,6 +600,14 @@
 <div class="view-toggle" id="viewToggle">
   <button id="btnMobile" class="active" type="button">📱 Teléfono</button>
   <button id="btnDesktop" type="button">💻 Escritorio</button>
+</div>
+
+<div class="lightbox" id="lightbox">
+  <button class="lb-close" id="lbClose" type="button">✕</button>
+  <button class="lb-prev" id="lbPrev" type="button">‹</button>
+  <img class="lb-img" id="lbImg" src="" alt="">
+  <button class="lb-next" id="lbNext" type="button">›</button>
+  <div class="lb-counter" id="lbCounter"></div>
 </div>
 
 <div class="page">
@@ -591,7 +666,7 @@
   <div class="gallery">
     <h3>Ejemplos SFW</h3>
     <p class="gallery-sub">Reemplaza cada recuadro con tu imagen</p>
-    <div class="gallery-grid">
+    <div class="gallery-grid" data-group="sfw">
       <!-- Para agregar una imagen: cambia el div de abajo por
            <div class="img-slot"><img src="RUTA_DE_TU_IMAGEN.jpg" alt="Descripción"></div> -->
       <div class="img-slot"><img src="images/sfw-1.png" alt="Ejemplo SFW 1"></div>
@@ -602,7 +677,7 @@
 
     <h3>Ejemplos NSFW <span style="font-size:0.7rem; color:var(--muted); font-family:'Inter',sans-serif;">(18+)</span></h3>
     <p class="gallery-sub">Reemplaza cada recuadro con tu imagen</p>
-    <div class="gallery-grid">
+    <div class="gallery-grid" data-group="nsfw">
       <div class="img-slot"><img src="images/nsfw-1.webp" alt="Ejemplo NSFW 1"></div>
       <div class="img-slot"><img src="images/nsfw-2.webp" alt="Ejemplo NSFW 2"></div>
       <div class="img-slot"><img src="images/nsfw-3.webp" alt="Ejemplo NSFW 3"></div>
@@ -713,6 +788,61 @@
     s.style.animationDelay = (Math.random()*2.2).toFixed(2) + 's';
     starsContainer.appendChild(s);
   }
+
+  // --- Lightbox / carrusel ---
+  const lightbox = document.getElementById('lightbox');
+  const lbImg = document.getElementById('lbImg');
+  const lbCounter = document.getElementById('lbCounter');
+  let currentImages = [];
+  let currentIndex = 0;
+
+  function updateLightbox(){
+    const img = currentImages[currentIndex];
+    lbImg.src = img.src;
+    lbImg.alt = img.alt;
+    lbCounter.textContent = (currentIndex + 1) + ' / ' + currentImages.length;
+  }
+  function openLightbox(images, idx){
+    currentImages = images;
+    currentIndex = idx;
+    updateLightbox();
+    lightbox.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeLightbox(){
+    lightbox.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+  function showNext(){
+    currentIndex = (currentIndex + 1) % currentImages.length;
+    updateLightbox();
+  }
+  function showPrev(){
+    currentIndex = (currentIndex - 1 + currentImages.length) % currentImages.length;
+    updateLightbox();
+  }
+
+  function setupGallery(groupSelector){
+    const imgs = Array.from(document.querySelectorAll(groupSelector + ' img'));
+    imgs.forEach((img, i) => {
+      img.addEventListener('click', () => openLightbox(imgs, i));
+    });
+  }
+  setupGallery('.gallery-grid[data-group="sfw"]');
+  setupGallery('.gallery-grid[data-group="nsfw"]');
+
+  document.getElementById('lbClose').addEventListener('click', closeLightbox);
+  document.getElementById('lbNext').addEventListener('click', showNext);
+  document.getElementById('lbPrev').addEventListener('click', showPrev);
+  lightbox.addEventListener('click', (e) => {
+    if (e.target === lightbox) closeLightbox();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (!lightbox.classList.contains('active')) return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowRight') showNext();
+    if (e.key === 'ArrowLeft') showPrev();
+  });
 </script>
 
 </body>
