@@ -182,6 +182,12 @@
     .lang-toggle #langBtn .lang-label{ display: none; }
   }
 
+  /* --- Hide default Google Translate UI --- */
+  .goog-te-banner-frame, .skiptranslate > iframe{ display: none !important; }
+  body{ top: 0 !important; }
+  .goog-tooltip, .goog-tooltip:hover{ display: none !important; }
+  .goog-text-highlight{ background: none !important; box-shadow: none !important; }
+
   .moon-wrap{
     position: relative;
     width: 148px;
@@ -651,11 +657,13 @@
 <div class="lang-toggle" id="langToggle">
   <button id="langBtn" type="button" aria-label="Traducir página">🌐 <span class="lang-label">Traducir</span></button>
   <div class="lang-menu" id="langMenu">
-    <a href="#" data-lang="es">Español</a>
+    <a href="#" data-lang="es">Español (original)</a>
     <a href="#" data-lang="pt">Português (BR)</a>
     <a href="#" data-lang="en">English</a>
   </div>
 </div>
+
+<div id="google_translate_element" style="display:none;"></div>
 
 <div class="view-toggle" id="viewToggle">
   <button id="btnMobile" class="active" type="button">📱 Teléfono</button>
@@ -813,7 +821,45 @@
 </div>
 
 <script>
-  // --- Language toggle ---
+  // --- Language toggle (traducción en vivo con Google Translate Widget) ---
+  function googleTranslateElementInit(){
+    new google.translate.TranslateElement({
+      pageLanguage: 'es',
+      includedLanguages: 'es,pt,en',
+      layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+      autoDisplay: false
+    }, 'google_translate_element');
+  }
+
+  function setTranslateCookie(lang){
+    const value = '/es/' + lang;
+    document.cookie = 'googtrans=' + value + '; path=/';
+    document.cookie = 'googtrans=' + value + '; path=/; domain=' + window.location.hostname;
+  }
+  function clearTranslateCookie(){
+    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
+    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=' + window.location.hostname;
+  }
+
+  function translatePage(lang, attempt){
+    attempt = attempt || 0;
+    if (lang === 'es'){
+      clearTranslateCookie();
+      window.location.reload();
+      return;
+    }
+    const combo = document.querySelector('select.goog-te-combo');
+    if (combo){
+      combo.value = lang;
+      combo.dispatchEvent(new Event('change'));
+    } else if (attempt < 20) {
+      setTimeout(() => translatePage(lang, attempt + 1), 250);
+    } else {
+      setTranslateCookie(lang);
+      window.location.reload();
+    }
+  }
+
   const langBtn = document.getElementById('langBtn');
   const langMenu = document.getElementById('langMenu');
   langBtn.addEventListener('click', (e) => {
@@ -825,10 +871,8 @@
     link.addEventListener('click', (e) => {
       e.preventDefault();
       const lang = link.getAttribute('data-lang');
-      const pageUrl = window.location.href.split('#')[0];
-      const url = 'https://translate.google.com/translate?sl=auto&tl=' + lang + '&u=' + encodeURIComponent(pageUrl);
-      window.open(url, '_blank', 'noopener');
       langMenu.classList.remove('open');
+      translatePage(lang);
     });
   });
 
@@ -921,6 +965,8 @@
     if (e.key === 'ArrowLeft') showPrev();
   });
 </script>
+
+<script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
 </body>
 </html>
