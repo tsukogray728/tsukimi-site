@@ -22,7 +22,20 @@
   *{ margin:0; padding:0; box-sizing:border-box; }
 
   body{
-    background: radial-gradient(ellipse 120% 80% at 50% -10%, var(--night-soft) 0%, var(--night) 45%, var(--night-deep) 100%);
+    background-color: var(--night-deep);
+    background-image:
+      radial-gradient(ellipse 100% 55% at 50% 0%, rgba(28,31,61,0.85), transparent 70%),
+      radial-gradient(1.5px 1.5px at 15% 20%, rgba(242,239,230,0.55), transparent 60%),
+      radial-gradient(1.5px 1.5px at 75% 65%, rgba(242,239,230,0.4), transparent 60%),
+      radial-gradient(1px 1px at 45% 85%, rgba(242,239,230,0.45), transparent 60%),
+      radial-gradient(1px 1px at 90% 15%, rgba(242,239,230,0.35), transparent 60%),
+      radial-gradient(2px 2px at 25% 55%, rgba(231,211,161,0.4), transparent 60%),
+      radial-gradient(1px 1px at 60% 30%, rgba(242,239,230,0.3), transparent 60%),
+      radial-gradient(1.5px 1.5px at 10% 75%, rgba(242,239,230,0.4), transparent 60%),
+      radial-gradient(1px 1px at 85% 90%, rgba(242,239,230,0.3), transparent 60%);
+    background-repeat: no-repeat, repeat, repeat, repeat, repeat, repeat, repeat, repeat, repeat;
+    background-size: 100% 100%, 220px 220px, 220px 220px, 220px 220px, 220px 220px, 220px 220px, 220px 220px, 220px 220px, 220px 220px;
+    background-attachment: fixed;
     color: var(--moon-cream);
     font-family: 'Inter', sans-serif;
     min-height: 100vh;
