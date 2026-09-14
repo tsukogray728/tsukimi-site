@@ -590,6 +590,99 @@
     color: var(--moon-cream);
   }
 
+  /* --- Commission status banner --- */
+  .status-banner{
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--night-soft);
+    margin-bottom: 24px;
+  }
+  .status-banner.open{
+    padding: 13px 0;
+  }
+  .status-track{
+    display: inline-block;
+    white-space: nowrap;
+    animation: marquee 9s linear infinite;
+  }
+  .status-text{
+    display: inline-block;
+    padding-right: 60px;
+    font-family: 'Shippori Mincho', serif;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  @keyframes marquee{
+    from{ transform: translateX(0); }
+    to{ transform: translateX(-50%); }
+  }
+  @keyframes rainbow-shift{
+    from{ background-position: 0% 50%; }
+    to{ background-position: 400% 50%; }
+  }
+  .status-text .letter{
+    display: inline-block;
+    background: linear-gradient(90deg, #ff6b6b, #ffb86b, #ffe66b, #6bff95, #6bd4ff, #a06bff, #ff6b9d, #ff6b6b);
+    background-size: 400% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: letter-shake 0.35s ease-in-out infinite, rainbow-shift 2.5s linear infinite;
+  }
+  @keyframes letter-shake{
+    0%, 100%{ transform: translateY(0) rotate(0deg); }
+    25%{ transform: translateY(-2px) rotate(-3deg); }
+    75%{ transform: translateY(2px) rotate(3deg); }
+  }
+  .status-banner.closed{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 15px 20px;
+    text-align: center;
+  }
+  .status-closed-text{
+    font-family: 'Shippori Mincho', serif;
+    font-size: 0.92rem;
+    color: var(--muted);
+  }
+  @media (prefers-reduced-motion: reduce){
+    .status-track{ animation: none; }
+    .status-text .letter{ animation: none; background-position: 0% 50%; }
+  }
+
+  /* --- Waitlist --- */
+  .waitlist{
+    width: 100%;
+    margin-top: 8px;
+  }
+  .waitlist h3{
+    font-family: 'Shippori Mincho', serif;
+    font-weight: 500;
+    font-size: 1.3rem;
+    margin-bottom: 6px;
+    text-align: left;
+  }
+  .pending-counter{
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 14px 2px;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    width: 100%;
+  }
+  .pending-counter .label{
+    font-size: 0.92rem;
+    color: var(--moon-cream);
+  }
+  .pending-counter .count{
+    font-family: 'Shippori Mincho', serif;
+    font-size: 1.05rem;
+    color: var(--gold);
+  }
+
   /* --- Lightbox / carrusel --- */
   .img-slot img{ cursor: zoom-in; transition: opacity 0.2s ease; }
   .img-slot img:hover{ opacity: 0.85; }
@@ -776,6 +869,9 @@
   </div>
 
   <div class="comms">
+    <!-- El estado (abiertas/cerradas) se controla desde el script, buscando "COMMISSIONS_OPEN" -->
+    <div id="statusBanner"></div>
+
     <h3>Comisiones</h3>
     <p class="comms-sub">Precios base — contáctame por cualquiera de mis redes sociales (excepto Bluesky) para pedir una comisión</p>
 
@@ -814,6 +910,15 @@
     </div>
   </div>
 
+  <!-- Cola de comisiones: comentada por ahora, descomenta cuando sepas cuántos cupos manejar.
+  <div class="divider"></div>
+
+  <div class="waitlist">
+    <h3>Cola de comisiones</h3>
+    <div id="pendingCounter" class="pending-counter"></div>
+  </div>
+  -->
+
   <div class="divider"></div>
 
   <div class="payments">
@@ -845,6 +950,56 @@
 </div>
 
 <script>
+  // ============================================
+  // ESTADO DE COMISIONES — cambia solo esta línea
+  // true = abiertas (banner arcoíris animado)
+  // false = cerradas (aviso simple)
+  // ============================================
+  const COMMISSIONS_OPEN = true;
+
+  // ============================================
+  // CONTADOR DE DIBUJOS PENDIENTES
+  // Cambia estos dos números cuando quieras.
+  // Ejemplo: PENDING_COUNT = 2, PENDING_MAX = 5 → "Dibujos pendientes: 2/5"
+  // ============================================
+  const PENDING_COUNT = 0;
+  const PENDING_MAX = 5;
+
+  (function renderPendingCounter(){
+    const el = document.getElementById('pendingCounter');
+    if (!el) return; // la sección está comentada por ahora
+    el.innerHTML =
+      '<span class="label">Dibujos pendientes</span>' +
+      '<span class="count">' + PENDING_COUNT + ' / ' + PENDING_MAX + '</span>';
+  })();
+
+  function wrapLetters(text){
+    return text.split('').map(function(ch, i){
+      const delay = (i % 6) * 0.06;
+      const safe = ch === ' ' ? '&nbsp;' : ch;
+      return '<span class="letter" style="animation-delay:' + delay.toFixed(2) + 's">' + safe + '</span>';
+    }).join('');
+  }
+
+  (function renderCommissionStatus(){
+    const el = document.getElementById('statusBanner');
+    if (COMMISSIONS_OPEN){
+      const msg = wrapLetters('✨ Comisiones abiertas — escríbeme por Discord, X o Facebook para encargar ✨');
+      el.innerHTML =
+        '<div class="status-banner open">' +
+          '<div class="status-track">' +
+            '<span class="status-text">' + msg + '</span>' +
+            '<span class="status-text">' + msg + '</span>' +
+          '</div>' +
+        '</div>';
+    } else {
+      el.innerHTML =
+        '<div class="status-banner closed">' +
+          '<span class="status-closed-text">Comisiones cerradas por ahora — vuelve pronto 🌙</span>' +
+        '</div>';
+    }
+  })();
+
   // --- Language toggle (traducción en vivo con Google Translate Widget) ---
   function googleTranslateElementInit(){
     new google.translate.TranslateElement({
