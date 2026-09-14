@@ -121,7 +121,7 @@
   body.desktop-view .kana{ text-align: left; }
   body.desktop-view .tagline{ text-align: left; max-width: 260px; }
   body.desktop-view .content-col{ display: block; width: 100%; min-width: 0; }
-  body.desktop-view .gallery-grid{ grid-template-columns: repeat(2, 1fr); }
+  body.desktop-view .gallery-grid{ grid-template-columns: 1fr; max-width: 100%; }
   body.desktop-view .payment-list{ grid-template-columns: repeat(4, 1fr); }
   body.desktop-view .comms-group{ display: inline-block; width: calc(50% - 12px); vertical-align: top; }
   body.desktop-view .comms-group:first-of-type{ margin-right: 24px; }
@@ -129,6 +129,57 @@
 
   @media (max-width: 600px){
     .view-toggle{ display: none; }
+  }
+
+  /* --- Language toggle --- */
+  .lang-toggle{
+    position: fixed;
+    top: 18px;
+    left: 18px;
+    z-index: 20;
+  }
+  .lang-toggle #langBtn{
+    font-family: 'Inter', sans-serif;
+    font-size: 0.72rem;
+    color: var(--muted);
+    background: var(--night-soft);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 7px 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.2s ease, border-color 0.2s ease;
+  }
+  .lang-toggle #langBtn:hover{ color: var(--gold); border-color: var(--gold); }
+
+  .lang-menu{
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    background: var(--night-soft);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 6px;
+    display: none;
+    flex-direction: column;
+    min-width: 150px;
+  }
+  .lang-menu.open{ display: flex; }
+  .lang-menu a{
+    font-family: 'Inter', sans-serif;
+    font-size: 0.82rem;
+    color: var(--moon-cream);
+    text-decoration: none;
+    padding: 9px 10px;
+    border-radius: 6px;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+  .lang-menu a:hover{ background: var(--night); color: var(--gold); }
+
+  @media (max-width: 400px){
+    .lang-toggle #langBtn .lang-label{ display: none; }
   }
 
   .moon-wrap{
@@ -597,6 +648,15 @@
 
 <div class="stars" id="stars"></div>
 
+<div class="lang-toggle" id="langToggle">
+  <button id="langBtn" type="button" aria-label="Traducir página">🌐 <span class="lang-label">Traducir</span></button>
+  <div class="lang-menu" id="langMenu">
+    <a href="#" data-lang="es">Español</a>
+    <a href="#" data-lang="pt">Português (BR)</a>
+    <a href="#" data-lang="en">English</a>
+  </div>
+</div>
+
 <div class="view-toggle" id="viewToggle">
   <button id="btnMobile" class="active" type="button">📱 Teléfono</button>
   <button id="btnDesktop" type="button">💻 Escritorio</button>
@@ -654,7 +714,7 @@
         <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M20.32 4.7A19.8 19.8 0 0 0 15.79 3c-.2.36-.44.85-.6 1.24a18.3 18.3 0 0 0-5.38 0c-.16-.4-.4-.88-.6-1.24-1.6.28-3.1.75-4.53 1.7C1.7 9.1.99 13.4 1.24 17.63a19.9 19.9 0 0 0 5.99 3.03c.48-.66.91-1.36 1.28-2.1-.7-.27-1.37-.6-2-1 .17-.12.33-.25.49-.38 3.86 1.79 8.04 1.79 11.85 0 .16.13.32.26.49.38-.63.4-1.3.73-2 1 .37.74.8 1.44 1.28 2.1a19.86 19.86 0 0 0 5.99-3.03c.3-4.9-.75-9.16-3.29-12.93ZM8.68 15.03c-1.09 0-1.99-1-1.99-2.24 0-1.23.87-2.24 1.99-2.24 1.13 0 2.01 1.02 1.99 2.24 0 1.23-.87 2.24-1.99 2.24Zm6.64 0c-1.1 0-1.99-1-1.99-2.24 0-1.23.87-2.24 1.99-2.24 1.13 0 2.01 1.02 1.99 2.24 0 1.23-.86 2.24-1.99 2.24Z"/></svg>
         <div class="link-text">
           <span class="platform">Discord</span>
-          <span class="handle">Unirse al servidor</span>
+          <span class="handle">Pasa a saludar</span>
         </div>
       </a>
       <div class="discord-user">Usuario personal: <span>annie_2153_17458</span></div>
@@ -665,7 +725,6 @@
 
   <div class="gallery">
     <h3>Ejemplos SFW</h3>
-    <p class="gallery-sub">Reemplaza cada recuadro con tu imagen</p>
     <div class="gallery-grid" data-group="sfw">
       <!-- Para agregar una imagen: cambia el div de abajo por
            <div class="img-slot"><img src="RUTA_DE_TU_IMAGEN.jpg" alt="Descripción"></div> -->
@@ -676,7 +735,6 @@
     </div>
 
     <h3>Ejemplos NSFW <span style="font-size:0.7rem; color:var(--muted); font-family:'Inter',sans-serif;">(18+)</span></h3>
-    <p class="gallery-sub">Reemplaza cada recuadro con tu imagen</p>
     <div class="gallery-grid" data-group="nsfw">
       <div class="img-slot"><img src="images/nsfw-1.webp" alt="Ejemplo NSFW 1"></div>
       <div class="img-slot"><img src="images/nsfw-2.webp" alt="Ejemplo NSFW 2"></div>
@@ -755,6 +813,25 @@
 </div>
 
 <script>
+  // --- Language toggle ---
+  const langBtn = document.getElementById('langBtn');
+  const langMenu = document.getElementById('langMenu');
+  langBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    langMenu.classList.toggle('open');
+  });
+  document.addEventListener('click', () => langMenu.classList.remove('open'));
+  langMenu.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const lang = link.getAttribute('data-lang');
+      const pageUrl = window.location.href.split('#')[0];
+      const url = 'https://translate.google.com/translate?sl=auto&tl=' + lang + '&u=' + encodeURIComponent(pageUrl);
+      window.open(url, '_blank', 'noopener');
+      langMenu.classList.remove('open');
+    });
+  });
+
   const gate = document.getElementById('ageGate');
   document.getElementById('gateEnter').addEventListener('click', () => {
     gate.remove();
