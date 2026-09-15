@@ -605,6 +605,7 @@
     display: inline-block;
     white-space: nowrap;
     animation: marquee 9s linear infinite;
+    will-change: transform;
   }
   .status-text{
     display: inline-block;
@@ -620,7 +621,9 @@
   .status-text .letter{
     display: inline-block;
     animation: letter-shake 0.35s ease-in-out infinite;
+    contain: layout style paint;
     will-change: transform;
+    pointer-events: none;
   }
   @keyframes letter-shake{
     0%, 100%{ transform: translateY(0) rotate(0deg); }
@@ -957,21 +960,29 @@
   const PENDING_COUNT = 0;
   const PENDING_MAX = 5;
 
-  (function renderPendingCounter(){
+  const PENDING_LABEL = {
+    es: 'Dibujos pendientes',
+    pt: 'Desenhos pendentes',
+    en: 'Pending drawings'
+  };
+
+  function renderPendingCounter(lang){
+    lang = PENDING_LABEL[lang] ? lang : 'es';
     const el = document.getElementById('pendingCounter');
     if (!el) return; // la sección está comentada por ahora
     el.innerHTML =
-      '<span class="label">Dibujos pendientes</span>' +
+      '<span class="label">' + PENDING_LABEL[lang] + '</span>' +
       '<span class="count">' + PENDING_COUNT + ' / ' + PENDING_MAX + '</span>';
-  })();
+  }
+  renderPendingCounter('es');
 
   function wrapLetters(text){
     const len = text.length;
     return text.split('').map(function(ch, i){
+      if (ch === ' ') return '&nbsp;'; // los espacios no necesitan animar: menos elementos = menos carga
       const delay = (i % 6) * 0.06;
       const hue = Math.round((i / len) * 360);
-      const safe = ch === ' ' ? '&nbsp;' : ch;
-      return '<span class="letter" style="color:hsl(' + hue + ',85%,68%); animation-delay:' + delay.toFixed(2) + 's">' + safe + '</span>';
+      return '<span class="letter" style="color:hsl(' + hue + ',85%,68%); animation-delay:' + delay.toFixed(2) + 's">' + ch + '</span>';
     }).join('');
   }
 
@@ -1061,6 +1072,7 @@
       const lang = link.getAttribute('data-lang');
       langMenu.classList.remove('open');
       renderCommissionStatus(lang);
+      renderPendingCounter(lang);
       translatePage(lang);
     });
   });
