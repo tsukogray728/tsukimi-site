@@ -63,6 +63,49 @@
     100% { opacity: var(--star-op, 0.6); }
   }
 
+  /* --- Estrellas fugaces (livianas: solo transform + opacity, sin JS por frame) --- */
+  .shooting-stars{
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .shooting-star{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--moon-cream);
+    opacity: 0;
+    will-change: transform, opacity;
+    animation: shoot linear infinite;
+  }
+  .shooting-star::before{
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 0;
+    width: 90px;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(242,239,230,0.85), transparent);
+    transform: translateY(-50%);
+  }
+  @keyframes shoot{
+    0%   { transform: translate(0, 0) rotate(315deg); opacity: 0; }
+    4%   { opacity: 1; }
+    18%  { transform: translate(-420px, 420px) rotate(315deg); opacity: 0; }
+    100% { transform: translate(-420px, 420px) rotate(315deg); opacity: 0; }
+  }
+  @media (max-width: 600px){
+    .shooting-star:nth-child(n+4){ display: none; } /* menos estrellas fugaces en pantallas chicas */
+  }
+  @media (prefers-reduced-motion: reduce){
+    .shooting-star{ display: none; }
+  }
+
   .page{
     position: relative;
     z-index: 1;
@@ -596,10 +639,18 @@
     border: 1px solid var(--line);
     border-radius: 6px;
     background: var(--night-soft);
-    margin-bottom: 24px;
+    margin-bottom: 0;
   }
   .status-banner.open{
     padding: 13px 0;
+  }
+  .box-separator{
+    text-align: center;
+    font-family: 'Shippori Mincho', serif;
+    font-size: 0.8rem;
+    color: var(--lavender);
+    letter-spacing: 0.1em;
+    margin: 10px 0;
   }
   .status-track{
     display: inline-block;
@@ -765,6 +816,7 @@
 </div>
 
 <div class="stars" id="stars"></div>
+<div class="shooting-stars" id="shootingStars"></div>
 
 <div class="lang-toggle" id="langToggle">
   <button id="langBtn" type="button" aria-label="Traducir página">🌐 <span class="lang-label">Traducir</span></button>
@@ -865,7 +917,7 @@
 
   <div class="comms">
     <!-- El estado (abiertas/cerradas) se controla desde el script, buscando "COMMISSIONS_OPEN" -->
-    <div id="statusBanner" class="notranslate" translate="no"></div>
+    <div id="statusBanner" class="notranslate" translate="no" style="margin-bottom:14px;"></div>
 
     <h3>Comisiones</h3>
     <p class="comms-sub">Precios base — contáctame por cualquiera de mis redes sociales (excepto Bluesky) para pedir una comisión</p>
@@ -987,7 +1039,9 @@
   }
 
   // Textos traducidos a mano para el banner (no depende del widget de Google,
-  // así las letras siguen temblando sin romperse al cambiar de idioma)
+  // así las letras siguen temblando sin romperse al cambiar de idioma).
+  // Se muestran las 3 traducciones en cuadros separados (uno por idioma),
+  // cada uno con su propia animación completa y espacio entre ellos.
   const STATUS_OPEN_TEXT = {
     es: '✨ Comisiones abiertas — escríbeme por Discord, X o Facebook para encargar ✨',
     pt: '✨ Comissões abertas — me chama no Discord, X ou Facebook para encomendar ✨',
@@ -999,26 +1053,33 @@
     en: 'Commissions closed for now — check back soon 🌙'
   };
 
-  function renderCommissionStatus(lang){
-    lang = STATUS_OPEN_TEXT[lang] ? lang : 'es';
+  function buildOpenBox(text){
+    const msg = wrapLetters(text);
+    return '<div class="status-banner open">' +
+        '<div class="status-track">' +
+          '<span class="status-text">' + msg + '</span>' +
+          '<span class="status-text">' + msg + '</span>' +
+        '</div>' +
+      '</div>';
+  }
+
+  const BOX_SEPARATOR = '<div class="box-separator">- ✦ -</div>';
+
+  function renderCommissionStatus(){
     const el = document.getElementById('statusBanner');
     if (COMMISSIONS_OPEN){
-      const msg = wrapLetters(STATUS_OPEN_TEXT[lang]);
       el.innerHTML =
-        '<div class="status-banner open">' +
-          '<div class="status-track">' +
-            '<span class="status-text">' + msg + '</span>' +
-            '<span class="status-text">' + msg + '</span>' +
-          '</div>' +
-        '</div>';
+        buildOpenBox(STATUS_OPEN_TEXT.es) + BOX_SEPARATOR +
+        buildOpenBox(STATUS_OPEN_TEXT.pt) + BOX_SEPARATOR +
+        buildOpenBox(STATUS_OPEN_TEXT.en);
     } else {
       el.innerHTML =
-        '<div class="status-banner closed">' +
-          '<span class="status-closed-text">' + STATUS_CLOSED_TEXT[lang] + '</span>' +
-        '</div>';
+        '<div class="status-banner closed"><span class="status-closed-text">' + STATUS_CLOSED_TEXT.es + '</span></div>' + BOX_SEPARATOR +
+        '<div class="status-banner closed"><span class="status-closed-text">' + STATUS_CLOSED_TEXT.pt + '</span></div>' + BOX_SEPARATOR +
+        '<div class="status-banner closed"><span class="status-closed-text">' + STATUS_CLOSED_TEXT.en + '</span></div>';
     }
   }
-  renderCommissionStatus('es');
+  renderCommissionStatus();
 
   // --- Language toggle (traducción en vivo con Google Translate Widget) ---
   function googleTranslateElementInit(){
@@ -1071,7 +1132,6 @@
       e.preventDefault();
       const lang = link.getAttribute('data-lang');
       langMenu.classList.remove('open');
-      renderCommissionStatus(lang);
       renderPendingCounter(lang);
       translatePage(lang);
     });
@@ -1110,6 +1170,19 @@
     s.style.setProperty('--star-op', (0.25 + Math.random()*0.55).toFixed(2));
     s.style.animationDelay = (Math.random()*2.2).toFixed(2) + 's';
     starsContainer.appendChild(s);
+  }
+
+  // Estrellas fugaces: pocas (livianas) y solo transform/opacity animados por CSS
+  const shootingContainer = document.getElementById('shootingStars');
+  const shootingCount = 6;
+  for(let i=0;i<shootingCount;i++){
+    const s = document.createElement('div');
+    s.className = 'shooting-star';
+    s.style.top = (Math.random()*45) + '%';
+    s.style.left = (30 + Math.random()*65) + '%';
+    s.style.animationDuration = (5 + Math.random()*4).toFixed(1) + 's';
+    s.style.animationDelay = (Math.random()*8).toFixed(1) + 's';
+    shootingContainer.appendChild(s);
   }
 
   // --- Lightbox / carrusel ---
