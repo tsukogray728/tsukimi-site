@@ -862,7 +862,7 @@
 
   <div class="comms">
     <!-- El estado (abiertas/cerradas) se controla desde el script, buscando "COMMISSIONS_OPEN" -->
-    <div id="statusBanner"></div>
+    <div id="statusBanner" class="notranslate" translate="no"></div>
 
     <h3>Comisiones</h3>
     <p class="comms-sub">Precios base — contáctame por cualquiera de mis redes sociales (excepto Bluesky) para pedir una comisión</p>
@@ -975,10 +975,24 @@
     }).join('');
   }
 
-  (function renderCommissionStatus(){
+  // Textos traducidos a mano para el banner (no depende del widget de Google,
+  // así las letras siguen temblando sin romperse al cambiar de idioma)
+  const STATUS_OPEN_TEXT = {
+    es: '✨ Comisiones abiertas — escríbeme por Discord, X o Facebook para encargar ✨',
+    pt: '✨ Comissões abertas — me chama no Discord, X ou Facebook para encomendar ✨',
+    en: '✨ Commissions open — message me on Discord, X or Facebook to order ✨'
+  };
+  const STATUS_CLOSED_TEXT = {
+    es: 'Comisiones cerradas por ahora — vuelve pronto 🌙',
+    pt: 'Comissões fechadas por enquanto — volte em breve 🌙',
+    en: 'Commissions closed for now — check back soon 🌙'
+  };
+
+  function renderCommissionStatus(lang){
+    lang = STATUS_OPEN_TEXT[lang] ? lang : 'es';
     const el = document.getElementById('statusBanner');
     if (COMMISSIONS_OPEN){
-      const msg = wrapLetters('✨ Comisiones abiertas — escríbeme por Discord, X o Facebook para encargar ✨');
+      const msg = wrapLetters(STATUS_OPEN_TEXT[lang]);
       el.innerHTML =
         '<div class="status-banner open">' +
           '<div class="status-track">' +
@@ -989,10 +1003,11 @@
     } else {
       el.innerHTML =
         '<div class="status-banner closed">' +
-          '<span class="status-closed-text">Comisiones cerradas por ahora — vuelve pronto 🌙</span>' +
+          '<span class="status-closed-text">' + STATUS_CLOSED_TEXT[lang] + '</span>' +
         '</div>';
     }
-  })();
+  }
+  renderCommissionStatus('es');
 
   // --- Language toggle (traducción en vivo con Google Translate Widget) ---
   function googleTranslateElementInit(){
@@ -1045,6 +1060,7 @@
       e.preventDefault();
       const lang = link.getAttribute('data-lang');
       langMenu.classList.remove('open');
+      renderCommissionStatus(lang);
       translatePage(lang);
     });
   });
